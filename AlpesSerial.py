@@ -2,7 +2,6 @@ import serial
 from serial.tools.list_ports import comports
 from CRC16 import crc16
 import struct
-from AlpesProtocol import *
 
 __test__ = False
 
@@ -19,7 +18,7 @@ class AlpesSerial:
             self.serial.write(command) # Write to the serial
             
         if __debug__:
-            print('AlpesSerial: write(): Command sent to the hand:', command)
+            print('\nAlpesSerial: write(): Command sent to the hand:', command)
     
     
     
@@ -30,24 +29,9 @@ class AlpesSerial:
             response = b'test__'
                         
         if __debug__:
-            print('AlpesSerial: read(): Response received from the hand: ', response)
+            print('\nAlpesSerial:  read(): Response received from the hand: ', response)
         return response[:-2] #CRC check is omitted
         
-        
-        
-    def write_register(self, first_register_position, number_of_registers, data):
-        assert isinstance(data, list), 'Provided data should be a list, even in single value'
-        assert len(data) == number_of_registers, 'Number of registers requested for writing does not match the length of provided data'
-        command = AlpesCommand(PREFIXES.ECRITURE_REGISTRE, first_register_position, number_of_registers, data)        
-        self.write(command.pack())
-        return AlpesResponse(self.read(AlpesResponse(command).expected_size))
-    
-    
-    
-    def read_register(self, first_register_position, number_of_registers):
-        command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, first_register_position, number_of_registers, [])               
-        self.write(command.pack())
-        return AlpesResponse(self.read(AlpesResponse(command).expected_size))
         
         
     def connect_serial(self, port = None):
@@ -73,7 +57,8 @@ class AlpesSerial:
         ports = [port[0] for port in comports() if port[1] == 'FT232R USB UART']
 
         if len(ports) == 0:
-            print('Could not find a serial port connection associated to the hand. Try specifying it by passing its name when initialising an AlpesHand object')
+            print('Could not find a serial port connection associated to the hand. Try specifying it by passing its name when initialising an AlpesHand object!')
+            raise
         elif len(ports) == 1:
             print('Found one serial port connection associated to the hand at %s' % ports[0])
         elif len(ports) == 2:

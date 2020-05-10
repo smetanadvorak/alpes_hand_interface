@@ -5,18 +5,21 @@ import time
 
 h = AlpesHand()
 h.initialise()
-time.sleep(1)
 
+#h.get_memory_dump()
+#print(h.memory_dump[5])
 
 print('Writing motor position ...')
-res = h.write_positions([15000]*6)
+h.write_positions([0]+[0] * 5)
+#h.write_positions([0, 0, 0, 0, 0, 0])
+#res = h.write_tensions([-0]*6)
 
 
 print('Reading motor position ...')
-for i in range(50):
+for i in range(10):
      print('Pos.:', h.read_positions())
      print('Vel.:', h.read_velocities())
-     
+#print('Pos.:', h.read_positions()) 
 
-print('Reading motor modes ...')
-print(h.read_registers_across(MODE_CMD_MOTEUR)) 
+#('Reading motor modes ...')
+#print(h.read_registers_across(REGISTRES.MODE_CMD_MOTEUR)) 

@@ -110,3 +110,7 @@ class AlpesResponse(AlpesMessage):
             self.number_registers = struct.unpack('<B', response[3:4])
             self.data             = list(struct.unpack('<%sh' % self.number_registers, response[4:]))
                         
+
+      
+    
+               

@@ -92,8 +92,9 @@ REGISTRE_INITIALISATION            = 100
 
 # Some constants
 MAXIMAL_FINGER_FLEXION             = 43000
-MAXIMAL_THUMB_ADDUCTION            = 21000
+MAXIMAL_THUMB_ADDUCTION            = 43000
 MAXIMAL_MOTOR_POSITIONS            = [MAXIMAL_THUMB_ADDUCTION] + [MAXIMAL_FINGER_FLEXION] * 5
+MINIMAL_MOTOR_POSITIONS            = [0] * 6
 
 
 # Some parameters from motor specification (DCX10L EB KL 12V):
@@ -108,8 +109,9 @@ class MOTORSPEC:
 # chapter 7.Systemes de controle du courant moteur.
 class CONTROLE_COURANT:
     COEFFICIENT_CNA     = 3.3 / 65535 #Converts value of LIMITE_COURANT to Amperes. 
-    LIMITE_COURANT_MAX  = int(MOTORSPEC.MAX_CONTINUOUS_CURRENT / COEFFICIENT_CNA)
-    
+    LIMITE_COURANT_DEFAUT = 750    
+    LIMITE_COURANT_COURAGE = 1000
+    LIMITE_COURANT_MAX  = int(MOTORSPEC.MAX_CONTINUOUS_CURRENT / COEFFICIENT_CNA) #Equal to 4190. Never try to reach it or go beyond.
 
     
   

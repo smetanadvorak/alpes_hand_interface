@@ -7,16 +7,9 @@ class AlpesHand:
     def __init__(self, port = None):
         self.serial = AlpesSerial(port)
         self.left_or_right()
+        self.set_current_limits()
         self.current_limit = self.read_registers_across(REGISTRES.LIMITE_COURANT)
        
-      
-    def left_or_right(self):
-        command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, 1000 + REGISTRES.ID_DROITE_GAUCHE, 1)
-        self.serial.write(command.pack())
-        response = AlpesResponse(self.serial.read(command.expected_response_size))
-        self.id = 'gauche' if response.data[0] else 'droite'
-        return self.id
-    
     
     def check_initialised(self):
         command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, REGISTRE_INITIALISATION, 1)
@@ -40,7 +33,14 @@ class AlpesHand:
                     print('\rInitialisation in progress ...', end='')
                     time.sleep(1)                
             raise 'Hand initialisation timeout (60 seconds) exceeded without the hand confirming the end of initialisation.'
-        
+
+
+    def left_or_right(self):
+        command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, 1000 + REGISTRES.ID_DROITE_GAUCHE, 1)
+        self.serial.write(command.pack())
+        response = AlpesResponse(self.serial.read(command.expected_response_size))
+        self.id = 'gauche' if response.data[0] else 'droite'
+        return self.id        
              
     #################################################################################  
     ############################## COMMAND FUNCTIONS ################################        
@@ -117,29 +117,11 @@ class AlpesHand:
         # If everything is ok, send the command
         for (i,m) in enumerate(motors):
             self.write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.LIMITE_COURANT, 1, [int(vals[i])])    
+        
+        self.current_limit = vals
         return 0         
      
-     
-       
-    def check_input(self, vals, motors, min_values, max_values):
-        if motors is None:
-            if not (isinstance(vals, list) and len(vals)==6) :
-                message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list.'
-                return False, message
-            motors = VOIES.ALL
-        else:
-            if len(vals) != len(motors):
-                message = 'Error: when list of motors is specified, its length should be equal to that of the command list.'
-                return False, message
-        
-        if any([val > max_values[i] for (i,val) in enumerate(vals)]):
-            message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software, command was not sent to the hand."
-            return False, message
-        if any([val < min_values[i] for (i,val) in enumerate(vals)]):
-            message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software, command was not sent to the hand."
-            return False, message
-        return True, ''
-        
+         
         
     def get_memory_dump(self):
         # Full memory dump is a list of six objects of type REGISTRES with fields filled by the hand's memory
@@ -220,3 +202,23 @@ class AlpesHand:
 #                 if not signs[i]:
 #                     response[i] *= -1    
     
+    
+    
+#     def check_input(self, vals, motors, min_values, max_values):
+#         if motors is None:
+#             if not (isinstance(vals, list) and len(vals)==6) :
+#                 message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list.'
+#                 return False, message
+#             motors = VOIES.ALL
+#         else:
+#             if len(vals) != len(motors):
+#                 message = 'Error: when list of motors is specified, its length should be equal to that of the command list.'
+#                 return False, message
+#         
+#         if any([val > max_values[i] for (i,val) in enumerate(vals)]):
+#             message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software, command was not sent to the hand."
+#             return False, message
+#         if any([val < min_values[i] for (i,val) in enumerate(vals)]):
+#             message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software, command was not sent to the hand."
+#             return False, message
+#         return True, ''

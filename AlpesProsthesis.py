@@ -17,7 +17,8 @@ class Grasp:
         
     def get_trajectory_point(self, x): 
         if x < 0 or x > 1:
-            raise ValueError('Value for proportional control should be 0 < x < 1. No command applied, running script is aborted.')               
+            print('The passed value for proportional control is outside the interval [0,1]. Closest valid value used instead.')       
+            x = 0 if x < 0 else 1
         for i in range(1, len(self.command_nodes)):
             if x >= self.command_nodes[i-1] and x <= self.command_nodes[i]:
                 point = self.__interpolate(  self.command_nodes[i-1],       self.command_nodes[i], 
@@ -47,11 +48,14 @@ class AlpesProsthesis(AlpesHand):
         else:            
             # Regulate motion by changing the motors' current limit. PID of the hand will almost always 
             # draw maximal current if it is limited below 750 (Alpes' default value of current limit).
-            point    =  self.grasp.get_trajectory_point(x)
+            point    =  self.grasp.get_trajectory_point(abs(x))
             current  =  [int(point[i] * CONTROLE_COURANT.LIMITE_COURANT_DEFAUT) for i in range(len(point))]
             self.set_current_limits(current)
-            # Aim to reach the final position
-            self.proportional_control_position(1)
+            # Aim to reach the final position or initial position, depending on the sign of the intent
+            if x <= 0:
+                self.proportional_control_position(0)
+            else:
+                self.proportional_control_position(1)
 
     def set_grasp(self, grasp):
         self.gesture = None
@@ -91,7 +95,7 @@ class GRASPS:
                         trajectory_nodes = 
                         np.array([  [1.0,      0.05,   0.15,   0.15,   0.15,   0.20],
                                     [1.0,      0.2,    0.8,    0.8,    0.8,    0.80],
-                                    [1.0,      0.75,   0.90,   0.90,   0.90,   0.90]]))
+                                    [1.0,      0.6,   0.90,   0.90,   0.90,   0.90]]))
                                     
     LATERAL     = Grasp(command_nodes = [0.0, 
                                         #0.5, 

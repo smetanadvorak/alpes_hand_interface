@@ -27,7 +27,8 @@ class AlpesCommand(AlpesMessage):
         if self.prefix != PREFIXES.LECTURE_REGISTRE:
             if not isinstance(data, list):
                 data = [data]
-            assert len(data) == number_registers, 'Number of registers requested for writing does not match the length of provided data'
+            if len(data) != number_registers:
+                raise ValueError('Number of registers requested for writing does not match the length of provided data.')
         else:
             data = []
         return data

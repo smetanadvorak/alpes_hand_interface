@@ -1,5 +1,6 @@
 import AlpesSerial
-from AlpesProsthesis import AlpesProsthesis
+from AlpesSpecification import *
+from AlpesProsthesis import AlpesProsthesis, GESTURES, GRASPS
 import time
 
 h = AlpesProsthesis()
@@ -38,20 +39,22 @@ h.initialise()
 
 
 # Proportional control (current)
-# h.set_grasp(GRASPS.CYLINDRICAL)
-# time.sleep(5)
-# N = 10
-# for t in range(N+1):
-#     h.proportional_control_current(t/N)
-#     time.sleep(0.1)
-# 
+h.set_grasp(GRASPS.CYLINDRICAL)
+time.sleep(2)
+N = 20
+for t in range(N+1):
+    h.proportional_control_current(t/N)
+    print(h.read_registers_across(REGISTRES.LIMITE_COURANT))
+    time.sleep(0.2)
+
 # for t in range(N,-1,-1):
-#     h.proportional_control_current(t/N)
-#     time.sleep(0.1)
-# 
-# time.sleep(5)
-# h.proportional_control_current(0)
-# h.set_gesture(GESTURES.OPEN)
+#     h.proportional_control_current(-t/N)
+#     print(h.read_registers_across(REGISTRES.LIMITE_COURANT))
+#     time.sleep(0.2)
+
+time.sleep(5)
+h.proportional_control_current(-0.1)
+#h.set_gesture(GESTURES.OPEN)
 
 
 #h.get_memory_dump()

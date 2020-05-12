@@ -47,6 +47,25 @@ class AlpesHand:
     #################################################################################  
     ############################## COMMAND FUNCTIONS ################################        
     #################################################################################   
+    def check_command(self, vals, motors, max_values, min_values=[0]*6):
+        if motors is None:
+            if not (isinstance(vals, list) and len(vals)==6) :
+                message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list. Command was not sent to the hand.\n'
+                return False, message
+        else:
+            if len(vals) != len(motors):
+                message = 'Error: when list of motors is specified, its length should be equal to that of the command list. Command was not sent to the hand.\n'
+                return False, message
+        
+        if any([val > max_values[i] for (i,val) in enumerate(vals)]):
+            message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand.\n"
+            return False, message
+        if any([val < min_values[i] for (i,val) in enumerate(vals)]):
+            message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand.\n"
+            return False, message
+        return True, ''
+   
+    
     def write_positions(self, vals, motors = None):
         # Check the passed values for correctness
         correct, message = self.check_command(vals, motors, MAXIMAL_MOTOR_POSITIONS, [0] * 6)
@@ -92,21 +111,6 @@ class AlpesHand:
         return 0         
      
          
-        
-    def get_memory_dump(self):
-        # Full memory dump is a list of six objects of type REGISTRES with fields filled by the hand's memory
-        self.memory_dump = [REGISTRES() for i in VOIES.ALL]
-        # Get list of the attributes of type REGISTRES to project memory onto the REGISTRES objects.
-        attributes  = [s for s in dir(REGISTRES()) if not s.startswith('__') and not callable(getattr(REGISTRES(), s))]
-        # For each 'voie' (motor channel)
-        for (i,voie) in enumerate(self.memory_dump):
-            voie_dump = self.__read_registers_consecutively(VOIE2MEMOIRE(i), 42) #Total of 42 registers per motor channel (See 'Registres Main Robotisee.pdf')
-            for attr in attributes:
-                memory_position = getattr(REGISTRES(), attr)
-                setattr(voie, attr, voie_dump[memory_position])
-        
-            
-        
     #################################################################################  
     ########################### MEASUREMENTS FUNCTIONS ##############################        
     #################################################################################         
@@ -129,32 +133,50 @@ class AlpesHand:
     ##################### REGISTER READING/WRITING FUNCTIONS ########################
     #################################################################################   
     def __write_registers_consecutively(self, first_register_position, number_of_registers, data):
-        assert isinstance(data, list), 'Provided data should be a list, even in single value'
-        assert len(data) == number_of_registers, 'Number of registers requested for writing does not match the length of provided data'
+        if not isinstance(data, list):
+            raise ValueError('Provided data should be a list, even in single value')
+        if len(data) != number_of_registers:
+            raise ValueError('Number of registers requested for writing does not match the length of provided data')
         command = AlpesCommand(PREFIXES.ECRITURE_REGISTRE, first_register_position, number_of_registers, data)        
         self.serial.write(command.pack())
         return AlpesResponse(self.serial.read(command.expected_response_size))
-    
     
     def __read_registers_consecutively(self, first_register_position, number_of_registers):
         command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, first_register_position, number_of_registers, [])               
         self.serial.write(command.pack())
         return AlpesResponse(self.serial.read(command.expected_response_size)).data
-        
+    
+    
+    def write_register(self, motor, register_id, data):
+        return self.__write_registers_consecutively(VOIE2MEMOIRE(motor) + register_id, 1, [data])       
+    
+    def read_register(self, motor, register_id):
+        return self.__read_registers_consecutively(VOIE2MEMOIRE(motor) + register_id,  1)
+   
    
     def write_registers_across(self, register_id, data):
-        assert isinstance(data, list) and len(data)==6, 'AlpesHand: write_registers_across(): data should be a list of six elements.'
+        if not (isinstance(data, list) and len(data)==6):
+            raise ValueError('AlpesHand: write_registers_across(): data should be a list of six elements.')
         [self.__write_registers_consecutively(VOIE2MEMOIRE(v) + register_id, 1, [data[v]]) for v in VOIES.ALL]        
-        
         
     def read_registers_across(self, register_id):
         return [self.__read_registers_consecutively(VOIE2MEMOIRE(v) + register_id, 1)[0] for v in VOIES.ALL]
+          
+                
+    def get_memory_dump(self):
+        # Full memory dump is a list of six objects of type REGISTRES with fields filled by the hand's memory
+        self.memory_dump = [REGISTRES() for i in VOIES.ALL]
+        # Get list of the attributes of type REGISTRES to project memory onto the REGISTRES objects.
+        attributes  = [s for s in dir(REGISTRES()) if not s.startswith('__') and not callable(getattr(REGISTRES(), s))]
+        # For each 'voie' (motor channel)
+        for (i,voie) in enumerate(self.memory_dump):
+            voie_dump = self.__read_registers_consecutively(VOIE2MEMOIRE(i), 42) #Total of 42 registers per motor channel (See 'Registres Main Robotisee.pdf')
+            for attr in attributes:
+                memory_position = getattr(REGISTRES(), attr)
+                setattr(voie, attr, voie_dump[memory_position])
+        return self.memory_dump
+            
         
- 
-           
-           
-           
-           
            
 # Saved for later
 #     def read_velocities(self): #, get_directions = 'False'):
@@ -172,22 +194,3 @@ class AlpesHand:
 #                 if not signs[i]:
 #                     response[i] *= -1    
     
-    
-    
-    def check_command(self, vals, motors, max_values, min_values=[0]*6):
-        if motors is None:
-            if not (isinstance(vals, list) and len(vals)==6) :
-                message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list. Command was not sent to the hand.\n'
-                return False, message
-        else:
-            if len(vals) != len(motors):
-                message = 'Error: when list of motors is specified, its length should be equal to that of the command list. Command was not sent to the hand.\n'
-                return False, message
-        
-        if any([val > max_values[i] for (i,val) in enumerate(vals)]):
-            message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand.\n"
-            return False, message
-        if any([val < min_values[i] for (i,val) in enumerate(vals)]):
-            message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand.\n"
-            return False, message
-        return True, ''

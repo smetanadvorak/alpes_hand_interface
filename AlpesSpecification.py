@@ -71,7 +71,7 @@ class REGISTRES:
     # Angular velocity registers
     DIR_MOTEUR_CODEUR           = 19 # Note: Seems to contain 0b0..011 disregarding the direction of motor rotation.
     TEMPS_CALCUL_VITESSE        = 20 
-    EMPLACEMENT_DIR_MOT_CODEUR     = 25
+    EMPLACEMENT_DIR_MOT_CODEUR  = 25
     VITESSE_MOTEUR              = 27
     
     # General registers

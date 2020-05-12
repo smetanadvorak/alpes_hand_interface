@@ -12,8 +12,7 @@ class Grasp:
         self.trajectory_nodes = trajectory_nodes
         self.final_position = [self.trajectory_nodes[-1,i] for i in range(self.trajectory_nodes.shape[1])]
         
-    def interpolate(self, x1, x2, y1, y2, x):
-        #print('Grasp.interpolate():',x1, x2, y1, y2, x)
+    def __interpolate(self, x1, x2, y1, y2, x):
         return y1 + np.true_divide(y2-y1, x2-x1) * (x-x1) # Same as return y1 + (y2-y1)/(x2-x1) * x, but Python2-friendly.
         
     def get_trajectory_point(self, x): 
@@ -21,7 +20,7 @@ class Grasp:
             raise ValueError('Value for proportional control should be 0 < x < 1. No command applied, running script is aborted.')               
         for i in range(1, len(self.command_nodes)):
             if x >= self.command_nodes[i-1] and x <= self.command_nodes[i]:
-                point = self.interpolate(  self.command_nodes[i-1],       self.command_nodes[i], 
+                point = self.__interpolate(  self.command_nodes[i-1],       self.command_nodes[i], 
                                            self.trajectory_nodes[i-1,:],  self.trajectory_nodes[i,:], x)
                 return point.tolist()
         
@@ -50,14 +49,12 @@ class AlpesProsthesis(AlpesHand):
             # draw maximal current if it is limited below 750 (Alpes' default value of current limit).
             point    =  self.grasp.get_trajectory_point(x)
             current  =  [int(point[i] * CONTROLE_COURANT.LIMITE_COURANT_DEFAUT) for i in range(len(point))]
-            print(x, point, current)
             self.set_current_limits(current)
-            # Always aim to reach final position
-            # self.write_positions([int(self.grasp.final_position[i] * MAXIMAL_MOTOR_POSITIONS[i]) for i in range(len(self.grasp.final_position))])
+            # Aim to reach the final position
             self.proportional_control_position(1)
 
     def set_grasp(self, grasp):
-        self.gestures = None
+        self.gesture = None
         self.grasp = grasp
         self.proportional_control_position(0)
         

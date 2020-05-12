@@ -44,7 +44,11 @@ h.initialise()
 h.set_grasp(GRASPS.CYLINDRICAL)
 time.sleep(5)
 N = 10
-for t in range(N):
+for t in range(N+1):
+    h.proportional_control_current(t/N)
+    time.sleep(0.1)
+
+for t in range(N,-1,-1):
     h.proportional_control_current(t/N)
     time.sleep(0.1)
 
@@ -53,8 +57,8 @@ h.proportional_control_current(0)
 h.set_gesture(GESTURES.OPEN)
 
 
-#h.get_memory_dump()
-#print(h.memory_dump[5])
+h.get_memory_dump()
+print(h.memory_dump[5])
 
 #print('Writing motor position ...')
 #h.write_positions([0]+[0] * 5)
@@ -62,11 +66,11 @@ h.set_gesture(GESTURES.OPEN)
 #res = h.write_tensions([-0]*6)
 
 
-#print('Reading motor position ...')
-#for i in range(10):
-#     print('Pos.:', h.read_positions())
-#     print('Vel.:', h.read_velocities())
-#print('Pos.:', h.read_positions()) 
+print('Reading motor position ...')
+for i in range(10):
+     print('Pos.:', h.read_positions())
+     print('Vel.:', h.read_velocities())
+print('Pos.:', h.read_positions()) 
 
 #('Reading motor modes ...')
 #print(h.read_registers_across(REGISTRES.MODE_CMD_MOTEUR)) 

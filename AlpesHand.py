@@ -10,20 +10,13 @@ class AlpesHand:
         self.set_current_limits()
         self.current_limit = self.read_registers_across(REGISTRES.LIMITE_COURANT)
        
-    
-    def check_initialised(self):
-        command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, REGISTRE_INITIALISATION, 1)
-        self.serial.write(command.pack())
-        response = AlpesResponse(self.serial.read(command.expected_response_size))
-        return response.data[0] == 1
-        
         
     def initialise(self):
         if self.check_initialised():
             print('Great! Hand already initialised.')
             return 0
         else:
-            self.write_registers_consecutively(REGISTRE_INITIALISATION, 1, [1])
+            self.__write_registers_consecutively(REGISTRE_INITIALISATION, 1, [1])
             start_time = time.perf_counter()
             while time.perf_counter() - start_time < 60: #Give the hand a minute to initialise. If it doesn't, abort and return an error.
                 if self.check_initialised():
@@ -33,14 +26,22 @@ class AlpesHand:
                     print('\rInitialisation in progress ...', end='')
                     time.sleep(1)                
             raise 'Hand initialisation timeout (60 seconds) exceeded without the hand confirming the end of initialisation.'
-
+    
+    def check_initialised(self):
+        command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, REGISTRE_INITIALISATION, 1)
+        self.serial.write(command.pack())
+        response = AlpesResponse(self.serial.read(command.expected_response_size))
+        return response.data[0] == 1
+        
 
     def left_or_right(self):
         command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, 1000 + REGISTRES.ID_DROITE_GAUCHE, 1)
         self.serial.write(command.pack())
         response = AlpesResponse(self.serial.read(command.expected_response_size))
         self.id = 'gauche' if response.data[0] else 'droite'
-        return self.id        
+        return self.id   
+        
+         
              
     #################################################################################  
     ############################## COMMAND FUNCTIONS ################################        
@@ -66,7 +67,7 @@ class AlpesHand:
             return 1 
                     
         for (i,m) in enumerate(motors):
-            self.write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.MODE_CMD_MOTEUR, 2,
+            self.__write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.MODE_CMD_MOTEUR, 2,
                                                 [MODE_CMD_MOTEUR.POSITION,   int(vals[i])] )            
         return 0
      
@@ -91,7 +92,7 @@ class AlpesHand:
             
         # If everything is ok, send the command
         for (i,m) in enumerate(motors):
-            self.write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.MODE_CMD_MOTEUR, 2,
+            self.__write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.MODE_CMD_MOTEUR, 2,
                                                 [MODE_CMD_MOTEUR.TENSION, int(vals[i] * 100)])    
         return 0 
         
@@ -116,7 +117,7 @@ class AlpesHand:
             
         # If everything is ok, send the command
         for (i,m) in enumerate(motors):
-            self.write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.LIMITE_COURANT, 1, [int(vals[i])])    
+            self.__write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.LIMITE_COURANT, 1, [int(vals[i])])    
         
         self.current_limit = vals
         return 0         
@@ -130,7 +131,7 @@ class AlpesHand:
         attributes  = [s for s in dir(REGISTRES()) if not s.startswith('__') and not callable(getattr(REGISTRES(), s))]
         # For each 'voie' (motor channel)
         for (i,voie) in enumerate(self.memory_dump):
-            voie_dump = self.read_registers_consecutively(VOIE2MEMOIRE(i), 42) #Total of 42 registers per motor channel (See 'Registres Main Robotisee.pdf')
+            voie_dump = self.__read_registers_consecutively(VOIE2MEMOIRE(i), 42) #Total of 42 registers per motor channel (See 'Registres Main Robotisee.pdf')
             for attr in attributes:
                 memory_position = getattr(REGISTRES(), attr)
                 setattr(voie, attr, voie_dump[memory_position])
@@ -158,7 +159,7 @@ class AlpesHand:
     #################################################################################
     ##################### REGISTER READING/WRITING FUNCTIONS ########################
     #################################################################################   
-    def write_registers_consecutively(self, first_register_position, number_of_registers, data):
+    def __write_registers_consecutively(self, first_register_position, number_of_registers, data):
         assert isinstance(data, list), 'Provided data should be a list, even in single value'
         assert len(data) == number_of_registers, 'Number of registers requested for writing does not match the length of provided data'
         command = AlpesCommand(PREFIXES.ECRITURE_REGISTRE, first_register_position, number_of_registers, data)        
@@ -166,7 +167,7 @@ class AlpesHand:
         return AlpesResponse(self.serial.read(command.expected_response_size))
     
     
-    def read_registers_consecutively(self, first_register_position, number_of_registers):
+    def __read_registers_consecutively(self, first_register_position, number_of_registers):
         command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, first_register_position, number_of_registers, [])               
         self.serial.write(command.pack())
         return AlpesResponse(self.serial.read(command.expected_response_size)).data
@@ -174,11 +175,11 @@ class AlpesHand:
    
     def write_registers_across(self, register_id, data):
         assert isinstance(data, list) and len(data)==6, 'AlpesHand: write_registers_across(): data should be a list of six elements.'
-        [self.write_registers_consecutively(VOIE2MEMOIRE(v) + register_id, 1, [data[v]]) for v in VOIES.ALL]        
+        [self.__write_registers_consecutively(VOIE2MEMOIRE(v) + register_id, 1, [data[v]]) for v in VOIES.ALL]        
         
         
     def read_registers_across(self, register_id):
-        return [self.read_registers_consecutively(VOIE2MEMOIRE(v) + register_id, 1)[0] for v in VOIES.ALL]
+        return [self.__read_registers_consecutively(VOIE2MEMOIRE(v) + register_id, 1)[0] for v in VOIES.ALL]
         
  
            
@@ -204,21 +205,21 @@ class AlpesHand:
     
     
     
-#     def check_input(self, vals, motors, min_values, max_values):
-#         if motors is None:
-#             if not (isinstance(vals, list) and len(vals)==6) :
-#                 message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list.'
-#                 return False, message
-#             motors = VOIES.ALL
-#         else:
-#             if len(vals) != len(motors):
-#                 message = 'Error: when list of motors is specified, its length should be equal to that of the command list.'
-#                 return False, message
-#         
-#         if any([val > max_values[i] for (i,val) in enumerate(vals)]):
-#             message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software, command was not sent to the hand."
-#             return False, message
-#         if any([val < min_values[i] for (i,val) in enumerate(vals)]):
-#             message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software, command was not sent to the hand."
-#             return False, message
-#         return True, ''
+    def check_command(self, vals, motors, min_values, max_values):
+        if motors is None:
+            if not (isinstance(vals, list) and len(vals)==6) :
+                message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list. Command was not sent to the hand.'
+                return False, message
+            motors = VOIES.ALL
+        else:
+            if len(vals) != len(motors):
+                message = 'Error: when list of motors is specified, its length should be equal to that of the command list. Command was not sent to the hand.'
+                return False, message
+        
+        if any([val > max_values[i] for (i,val) in enumerate(vals)]):
+            message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand."
+            return False, message
+        if any([val < min_values[i] for (i,val) in enumerate(vals)]):
+            message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand."
+            return False, message
+        return True, ''

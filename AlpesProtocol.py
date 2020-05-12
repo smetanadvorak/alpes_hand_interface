@@ -18,12 +18,12 @@ class AlpesCommand(AlpesMessage):
         self.prefix = prefix #Type of command: WR, RD, W1 ... W6
         self.start_register = start_register
         self.number_registers = number_registers
-        self.data = self.check_data(number_registers, data) 
-        self.calc_expected_response_size()
+        self.data = self.__check_data(number_registers, data) 
+        self.expected_response_size = AlpesResponse(self).size
     
     
     
-    def check_data(self, number_registers, data):
+    def __check_data(self, number_registers, data):
         if self.prefix != PREFIXES.LECTURE_REGISTRE:
             if not isinstance(data, list):
                 data = [data]
@@ -53,30 +53,25 @@ class AlpesCommand(AlpesMessage):
             self.packed += struct.pack('<%sH' % len(self.data), *self.data)
         return self.packed   
         
-    
-    def calc_expected_response_size(self):
-        self.expected_response_size = AlpesResponse(self).size
-        return self.expected_response_size
-    
-          
+              
             
 class AlpesResponse(AlpesMessage):
     def __init__(self, command_or_bytes):
         if isinstance(command_or_bytes, bytes):
-            self.unpack(command_or_bytes)
+            self.__unpack(command_or_bytes)
         elif isinstance(command_or_bytes, AlpesCommand):
-            self.init_from_command(command_or_bytes)
+            self.__init_from_command(command_or_bytes)
             
             
-    def init_from_command(self, command): 
+    def __init_from_command(self, command): 
         self.prefix = command.prefix
         self.start_register = command.start_register
         self.number_registers = command.number_registers
         self.data = command.data
-        self.size = len(self.pack())
+        self.size = len(self.__pack())
             
             
-    def pack(self):
+    def __pack(self):
         # Implemented only to calculate the expected size of the response message. 
         # Messages received from the hand have different format depending on their type.
         # For details, see "Protocole Com Main Robotisee". 
@@ -93,7 +88,7 @@ class AlpesResponse(AlpesMessage):
         return self.packed   
         
         
-    def unpack(self, response):
+    def __unpack(self, response):
         self.prefix = response[0:2]
         if  self.prefix == PREFIXES.LECTURE_REGISTRE:
             self.start_register   = struct.unpack('<H', response[2:4])
@@ -110,7 +105,5 @@ class AlpesResponse(AlpesMessage):
             self.number_registers = struct.unpack('<B', response[3:4])
             self.data             = list(struct.unpack('<%sh' % self.number_registers, response[4:]))
                         
-
-      
     
                

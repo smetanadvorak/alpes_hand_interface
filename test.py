@@ -1,10 +1,7 @@
-from AlpesSerial import *
-from AlpesHand import *
-from AlpesProtocol import *
-from AlpesGestures import *
+import AlpesSerial
+from AlpesProsthesis import AlpesProsthesis
 import time
 
-#h = AlpesHand()
 h = AlpesProsthesis()
 h.initialise()
 
@@ -41,36 +38,86 @@ h.initialise()
 
 
 # Proportional control (current)
-h.set_grasp(GRASPS.CYLINDRICAL)
-time.sleep(5)
-N = 10
-for t in range(N+1):
-    h.proportional_control_current(t/N)
-    time.sleep(0.1)
+# h.set_grasp(GRASPS.CYLINDRICAL)
+# time.sleep(5)
+# N = 10
+# for t in range(N+1):
+#     h.proportional_control_current(t/N)
+#     time.sleep(0.1)
+# 
+# for t in range(N,-1,-1):
+#     h.proportional_control_current(t/N)
+#     time.sleep(0.1)
+# 
+# time.sleep(5)
+# h.proportional_control_current(0)
+# h.set_gesture(GESTURES.OPEN)
 
-for t in range(N,-1,-1):
-    h.proportional_control_current(t/N)
-    time.sleep(0.1)
 
-time.sleep(5)
-h.proportional_control_current(0)
-h.set_gesture(GESTURES.OPEN)
-
-
-h.get_memory_dump()
-print(h.memory_dump[5])
+#h.get_memory_dump()
+#print(h.memory_dump[5])
 
 #print('Writing motor position ...')
 #h.write_positions([0]+[0] * 5)
 #h.write_positions([0, 0, 0, 0, 0, 0])
 #res = h.write_tensions([-0]*6)
 
+# Erroneous command entries tests
+# AlpesSerial.__test__ = True #Forbids writing to the registers
+# try:
+#     h.set_current_limits([-1]*6)
+# except ValueError as err:
+#     print('Error raised!:', err)
+# else:
+#     print('Error was not raised, something is wrong!')
+#     raise Exception
+#     
+# try:
+#     h.set_current_limits([10000]*6)
+# except ValueError as err:
+#     print('Error raised!:', err)
+# else:
+#     print('Error was not raised, something is wrong!')
+#     raise Exception
+#     
+# try:
+#     h.write_positions([-1]*6)
+# except ValueError as err:
+#     print('Error raised!:', err)
+# else:
+#     print('Error was not raised, something is wrong!')
+#     raise Exception
+#     
+# try:
+#     h.write_positions([100000]*6)
+# except ValueError as err:
+#     print('Error raised!:', err)
+# else:
+#     print('Error was not raised, something is wrong!')
+#     raise Exception
+#     
+# try:
+#     h.write_tensions([-12]*6)
+# except ValueError as err:
+#     print('Error raised!:', err)
+# else:
+#     print('Error was not raised, something is wrong!')
+#     raise Exception
+#     
+# try:
+#     h.write_tensions([12]*6)
+# except ValueError as err:
+#     print('Error raised!:', err)
+# else:
+#     print('Error was not raised, something is wrong!')
+#     raise Exception
 
-print('Reading motor position ...')
-for i in range(10):
-     print('Pos.:', h.read_positions())
-     print('Vel.:', h.read_velocities())
-print('Pos.:', h.read_positions()) 
+# # Reading functions 
+# print('Reading motor position ...')
+# for i in range(10):
+#      print('Pos.:', h.read_positions())
+#      print('Vel.:', h.read_velocities())
+# print('Pos.:', h.read_positions()) 
 
 #('Reading motor modes ...')
 #print(h.read_registers_across(REGISTRES.MODE_CMD_MOTEUR)) 

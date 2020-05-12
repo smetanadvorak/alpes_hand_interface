@@ -90,7 +90,9 @@ class AlpesResponse(AlpesMessage):
         
     def __unpack(self, response):
         self.prefix = response[0:2]
-        if  self.prefix == PREFIXES.LECTURE_REGISTRE:
+        if  self.prefix == PREFIXES.TEST:
+            print('Test response received.')
+        elif self.prefix == PREFIXES.LECTURE_REGISTRE:
             self.start_register   = struct.unpack('<H', response[2:4])
             self.number_registers = struct.unpack('<H', response[4:6])
             self.data             = list(struct.unpack('<%si' % self.number_registers, response[6:]))

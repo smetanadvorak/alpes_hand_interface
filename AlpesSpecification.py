@@ -9,6 +9,7 @@ class PREFIXES:
     LECTURE_REGISTRE                    = bytearray([ord('R'), ord('D')])
     LECTURE_POSITION_CODEUR             = bytearray([ord('W'), ord('3')])
     LECTURE_VITESSE_MOTEUR              = bytearray([ord('W'), ord('6')])
+    TEST                                = bytearray([ord('T'), ord('S')]) # Not a part of official specification. Used only in this software for testing purposes.
 
 
 class VOIES:

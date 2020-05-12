@@ -1,7 +1,8 @@
 import serial, time
-from AlpesSerial import AlpesSerial
-from AlpesProtocol import *
 from AlpesSpecification import *
+from AlpesSerial import AlpesSerial
+from AlpesProtocol import AlpesResponse, AlpesCommand
+
 
 class AlpesHand:
     def __init__(self, port = None):
@@ -47,49 +48,27 @@ class AlpesHand:
     ############################## COMMAND FUNCTIONS ################################        
     #################################################################################   
     def write_positions(self, vals, motors = None):
-        # Sends to the hand a command to rotate motor until reaching a specified angle.
-        # Send angles as a list. If fingers not specified, vals should be a 6-element list (for all motors).
+        # Check the passed values for correctness
+        correct, message = self.check_command(vals, motors, MAXIMAL_MOTOR_POSITIONS, [0] * 6)
+        if not correct:
+            details = "Note: Maximal rotation angles reachable by motors in POSITION control mode are [%s]." % MAXIMAL_MOTOR_POSITIONS
+            raise ValueError(message + details) 
         if motors is None:
-            if not (isinstance(vals, list) and len(vals)==6) :
-                print('AlpesHand.write_positions(): Error: When motors are not specified, command is applied to all motors, so that "vals" should be a list with len of 6.')
-                return 1
-            motors = VOIES.ALL
-        else:
-            if len(vals) != len(motors):
-                print('AlpesHand.write_positions(): Error: if list of motors is specified, its length should be equal to that of the angles list.')
-                return 1     
-
-        if any([abs(val) > MAXIMAL_MOTOR_POSITIONS[i] for (i,val) in enumerate(vals)]):
-            print("AlpesHand.write_positions(): Error: value of requested position exceeds its possible maximum (%s), command not sent to the hand." % MAXIMAL_MOTOR_POSITIONS)
-            return 1   
-        if any([    val  < 0                        for val in vals]):
-            print("AlpesHand.write_positions(): Error: value of requested positoin cannot be negative, command not sent to the hand.")
-            return 1 
-                    
+            motors = VOIES.ALL                    
         for (i,m) in enumerate(motors):
             self.__write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.MODE_CMD_MOTEUR, 2,
-                                                [MODE_CMD_MOTEUR.POSITION,   int(vals[i])] )            
+                                                 [MODE_CMD_MOTEUR.POSITION,  int(vals[i])] )            
         return 0
      
         
     def write_tensions(self, vals, motors = None):
-        # Sends to the hand a command to apply specified tensions (in Volts) to the motors.
-        # Send tensions as a list. If motors not specified, vals should be a 6-element list (for all motors).
-        # First, check all kinds of stuff: 
+        # Check the passed values for correctness
+        correct, message = self.check_command(vals, motors, [MOTORSPEC.MAXIMAL_ABSOLUTE_TENSION] * 6, [-MOTORSPEC.MAXIMAL_ABSOLUTE_TENSION] * 6)
+        if not correct:
+            details = "Note: Maximal negative and positive tension specified in the Alpes Hand documentation are -11.5V, 11.5V."
+            raise ValueError(message + details)
         if motors is None:
-            if not (isinstance(vals, list) and len(vals)==6) :
-                print('AlpesHand.write_tension(): Error: When motors are not specified, command is applied to all motors, so that "tensions" should be a list with len of 6.')
-                return 1
-            motors = VOIES.ALL
-        else:
-            if len(vals) != len(motors):
-                print('AlpesHand.write_tension(): Error: if list of motors is specified, its length should be equal to that of the tensions list.')
-                return 1
-        
-        if any([abs(val) > MOTORSPEC.MAXIMAL_ABSOLUTE_TENSION for val in vals]):
-            print("AlpesHand.write_tensions(): Error: value of requested tension exceeds its maximum set in the Alpes Hand documentation (-11.5V, 11.5V), command not sent to the hand.")
-            return 1
-            
+            motors = VOIES.ALL     
         # If everything is ok, send the command
         for (i,m) in enumerate(motors):
             self.__write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.MODE_CMD_MOTEUR, 2,
@@ -98,23 +77,13 @@ class AlpesHand:
         
         
     def set_current_limits(self, vals = [750] * 6, motors = None):
+        # Check the passed values for correctness
+        correct, message = self.check_command(vals, motors, [CONTROLE_COURANT.LIMITE_COURANT_MAX] * 6)
+        if not correct:
+            details = "Note: Maximal current limit, according to the motor specification, is CONTROLE_COURANT.LIMITE_COURANT_MAX = 4000 (corresponds to 0.211 A of MAX_CONTINUOUS_CURRENT)."
+            raise ValueError(message + details)
         if motors is None:
-            if not (isinstance(vals, list) and len(vals)==6) :
-                print('AlpesHand.set_current_limits(): Error: When motors are not specified, command is applied to all motors, so that "tensions" should be a list with len of 6.')
-                return 1
-            motors = VOIES.ALL
-        else:
-            if len(vals) != len(motors):
-                print('AlpesHand.set_current_limits(): Error: if list of motors is specified, its length should be equal to that of the tensions list.')
-                return 1
-        
-        if any([abs(val) > CONTROLE_COURANT.LIMITE_COURANT_MAX for val in vals]):
-            print("AlpesHand.set_current_limits(): Error: value of requested tension exceeds its maximum set in the Alpes Hand documentation (0.211 A, or 4000 in LIMITE_COURANT points), command not sent to the hand.")
-            return 1
-        if any([    val  < 0                        for val in vals]):
-            print("AlpesHand.set_current_limits(): Error: value of requested positoin cannot be negative, command not sent to the hand.")
-            return 1             
-            
+            motors = VOIES.ALL           
         # If everything is ok, send the command
         for (i,m) in enumerate(motors):
             self.__write_registers_consecutively( VOIE2MEMOIRE(m) + REGISTRES.LIMITE_COURANT, 1, [int(vals[i])])    
@@ -205,21 +174,20 @@ class AlpesHand:
     
     
     
-    def check_command(self, vals, motors, min_values, max_values):
+    def check_command(self, vals, motors, max_values, min_values=[0]*6):
         if motors is None:
             if not (isinstance(vals, list) and len(vals)==6) :
-                message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list. Command was not sent to the hand.'
+                message = 'Error: when it is not specified to which motors to apply, the command is applied to all motors, so that input should be a six-element list. Command was not sent to the hand.\n'
                 return False, message
-            motors = VOIES.ALL
         else:
             if len(vals) != len(motors):
-                message = 'Error: when list of motors is specified, its length should be equal to that of the command list. Command was not sent to the hand.'
+                message = 'Error: when list of motors is specified, its length should be equal to that of the command list. Command was not sent to the hand.\n'
                 return False, message
         
         if any([val > max_values[i] for (i,val) in enumerate(vals)]):
-            message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand."
+            message = "Error: at least one of the requested values exceeds its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand.\n"
             return False, message
         if any([val < min_values[i] for (i,val) in enumerate(vals)]):
-            message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand."
+            message = "Error: at least one of the requested value is below its maximum set in the Alpes Hand documentation or by this software. Command was not sent to the hand.\n"
             return False, message
         return True, ''

@@ -23,7 +23,7 @@ class AlpesSerial:
         if not __test__:
             response = self.serial.read(n_bytes+2) #Plus 2 for CRC code
         else:
-            response = b'test__'
+            response = b'TS__'
                         
         if __debug__:
             print('\nAlpesSerial:  read(): Response received from the hand: ', response)

@@ -1,4 +1,4 @@
-# A Python interface for Alpes robotic hands.
+# Python interface for Alpes robotic hands
 
 ## Dependencies
 You have to use Python 3 (tested on 3.8) with the following packages installed:
@@ -7,11 +7,11 @@ You have to use Python 3 (tested on 3.8) with the following packages installed:
 
 ## Contents
 Classes and constant structures (from low to high level):
-	AlpesSpecification.py 	- provides a bunch of constant structures that define alias for the hand registers, communication codes, etc.
-	AlpesSerial				- a mere supplement for original pyserial module; can automatically detect serial ports that hands are connected to. 
-	AlpesProtocol			- contains functions that transform requests to correct binary packages that are sent to the hand. Also parces the responses. 
-	AlpesHand.	 			- low-level reading/writing instructions for the hand, initialisation, commands. 
-	AlpesProsthesis			- high-level command instructions for the hand. Permits to perform discrete gestures, as well as proportional grasps.
+- AlpesSpecification.py 	- provides a bunch of constant structures that define alias for the hand registers, communication codes, etc.
+- AlpesSerial				- a mere supplement for original pyserial module; can automatically detect serial ports that hands are connected to. 
+- AlpesProtocol				- contains functions that transform requests to correct binary packages that are sent to the hand. Also parces the responses. 
+- AlpesHand.	 			- low-level reading/writing instructions for the hand, initialisation, commands. 
+- AlpesProsthesis			- high-level command instructions for the hand. Permits to perform discrete gestures, as well as proportional grasps.
 	
 Note: class diagram that illustrates the relationship between these classes is provided in *class\_diagram.xml* and *class\_diagram.png* files.
 

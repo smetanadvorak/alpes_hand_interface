@@ -14,8 +14,8 @@ class AlpesSerial:
         if not __test__:
             self.serial.write(command) # Write to the serial
             
-        if __debug__:
-            print('\nAlpesSerial: write(): Command sent to the hand:', command)
+        #if __debug__:
+        #    print('\nAlpesSerial: write(): Command sent to the hand:', command)
     
     
     
@@ -25,8 +25,8 @@ class AlpesSerial:
         else:
             response = b'TS__'
                         
-        if __debug__:
-            print('\nAlpesSerial:  read(): Response received from the hand: ', response)
+        #if __debug__:
+        #    print('\nAlpesSerial:  read(): Response received from the hand: ', response)
         return response[:-2] #CRC check is omitted
         
         

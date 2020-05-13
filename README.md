@@ -26,7 +26,9 @@ from AlpesProsthesis import AlpesProsthesis
 h = AlpesProsthesis()
 h.initialise()
 ```
-If everything goes correctly, the hand will start the initialisation procedure. This procedure lasts about 30 seconds and is necessary if the hand was switched off for some considerable amount of time. If initialisation is finished successfully, you will see the message: 
+If everything goes correctly, the hand will start the initialisation procedure. 
+This procedure lasts about 30 seconds and is necessary if the hand was switched off before. 
+If initialisation is finished successfully, you will see the message: 
 
 `Hand initialised!` 
 
@@ -39,7 +41,8 @@ It is hard to tell in advance, what could go wrong during initialisation since t
 __Note__: If the hand was not switched off between the runs of this code, the  initialisation procedure will be automatically omitted to save time.
 
 ### Reading/writing hand's registers
-To read a specific register, first, check it's name in __AlpesSpecification.py__ file. For example, if you want to know the parameters of the index finger's internal PID controller, you want to read from __COEF\_P__, __COEF\_I__ and __COEF\_D__ registers of the corresponding channel:
+To read a specific register, first, check it's name in __AlpesSpecification.py__ file. 
+For example, if you want to know the parameters of the index finger's internal PID controller, read from __COEF\_P__, __COEF\_I__ and __COEF\_D__ registers of the corresponding channel:
 ```python
 pid = [ h.read_register(VOIES.INDEX, REGISTRES.COEF_P),
         h.read_register(VOIES.INDEX, REGISTRES.COEF_I),
@@ -85,7 +88,7 @@ vel = h.read_velocities() # Returns a six-element list
 ```
 __Caveat__: unfortunately, microcontroller always return the absolute angular velocity, not taking into account the direction of the rotation. 
 Logically, register __DIR\_MOTEUR\_CODEUR__, specified in the hand's documentation, should contain the direction of rotation (in it's first or second bit). 
-However, we have read these bits and found out that they do not change in function of rotation of the motors. We have left the corresponding method in AlpesHand commented.
+However, we have read these bits and found out that they do not change in function of rotation of the motors. We have left the corresponding method in AlpesHand (see __AlpesHand.read\_velocities\_and\_directions()__).
 Thus, it seems like there is no way to query the hand for the directions and therefore it should be derived from circumstances.
 
 
@@ -122,7 +125,7 @@ for g in ["ONE", "TWO", "THREE", "FOUR", "FIVE"]:
 
 (UNDER REVISION)
 
-Proportional control is continuous version of setting a gesture. It makes the hand to perform a grasp up to a specific degree between 0 (no grasp) and 1 (maximal grasping force).
+Proportional control is a continuous version of setting a gesture. It makes the hand to perform a grasp up to a specific degree between 0 (no grasp) and 1 (maximal grasping force).
 Available grasps are listed in __AlpesProsthesis.py__, class __GRASPS__ (see its comments for details). List can be extened.
 To set up proportional control, run:
 ```python
@@ -138,14 +141,13 @@ for t in range(N+1):
 ```
 
 ## Two-hands support
-Working with two hands at once is slightly different from working with one. 
 Here is the code that automatically finds both hands and initialises corresponding objects (hands should be both connected to the computer and powered):
 ```python
 from AlpesProsthesis import AlpesProsthesis
 hl, hr = AlpesProsthesis.two_hands()
 ```
 This will create two instances of AlpesProsthesis class: __hl__ for the left hand and __hr__ for the right. 
-Further work with is similar to that with one hand.
+Further work with each is similar to that with one hand.
 
 ## Working with MYO armband
 

@@ -39,11 +39,21 @@ class AlpesHand:
         command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, 1000 + REGISTRES.ID_DROITE_GAUCHE, 1)
         self.serial.write(command.pack())
         response = AlpesResponse(self.serial.read(command.expected_response_size))
-        self.id = 'gauche' if response.data[0] else 'droite'
+        self.id = 'left' if response.data[0] else 'right'
         return self.id   
-        
          
-             
+    @classmethod
+    def two_hands(cls):
+        ports = AlpesSerial.find_ports()
+        if len(ports) != 2:
+            raise ConnectionError('Could not find the two hands in the list of serial ports. Check if USB and power cables are inserted properly. Here is the port(s) that I found: %s' % ports)
+        else:
+            left  = cls(ports[0])
+            right = cls(ports[1])
+            if left.id == 'right':
+                left, right = right, left 
+        return left, right
+        
     #################################################################################  
     ############################## COMMAND FUNCTIONS ################################        
     #################################################################################   
@@ -176,21 +186,21 @@ class AlpesHand:
                 setattr(voie, attr, voie_dump[memory_position])
         return self.memory_dump
             
-        
            
-# Saved for later
-#     def read_velocities(self): #, get_directions = 'False'):
-#         # Asks the hand and returns angular velocity of the motors in turns/min
-#         command = AlpesCommand(PREFIXES.LECTURE_VITESSE_MOTEUR, 0, 6, self.current_limit)
-#         self.serial.write(command.pack())
-#         response = AlpesResponse(self.serial.read(command.expected_response_size)).data
-#         # Getting sign of velocity is optional since it requires additional reading procedure
-#         # and may slow down the acquisition. In most of the cases, sign can be derived from the command.
-#         if get_directions:
-#             directions = self.read_registers_across(REGISTRES.DIR_MOTEUR_CODEUR)
-#             signs = [(d & 2) > 0 for d in directions] # Read second bit of the response
-#             print(directions, signs)
-#             for i in range(len(response)):
-#                 if not signs[i]:
-#                     response[i] *= -1    
-    
+    def read_velocities_and_directions(self):
+        # Asks the hand and returns angular velocity of the motors in turns/min
+        # ATTENTION: this method is left here in case someone wants to re-test it. 
+        # Previous attempts to receive the direction of rotation from the hand were not successful.
+        command = AlpesCommand(PREFIXES.LECTURE_VITESSE_MOTEUR, 0, 6, self.current_limit)
+        self.serial.write(command.pack())
+        response = AlpesResponse(self.serial.read(command.expected_response_size)).data
+        # Getting sign of velocity is optional since it requires additional reading procedure
+        # and may slow down the acquisition. In most of the cases, sign can be derived from the command.
+        directions = self.read_registers_across(REGISTRES.DIR_MOTEUR_CODEUR)
+        signs = [(d & 2) > 0 for d in directions] # Read second bit of the response
+        #print(directions, signs)
+        for i in range(len(response)):
+            if not signs[i]:
+                response[i] *= -1  
+        return response  
+      

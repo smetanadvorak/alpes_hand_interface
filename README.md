@@ -1,15 +1,15 @@
 # Python interface for Alpes robotic hands
 
-## Dependencies
-You have to use Python 3 (tested on 3.8) with the following packages installed:
-	-pyserial
-	-numpy
+## Requirements and dependencies
+Python 3 (tested on 3.8) with the following packages installed:
+- pyserial
+- numpy
 
 ## Contents
 Classes and constant structures (from low to high level):
 - __AlpesSpecification.py__:    provides a bunch of constant structures that define alias for the hand registers, communication codes, etc.
 - __AlpesSerial__:              a mere supplement for original pyserial module; can automatically detect serial ports that hands are connected to. 
-- __AlpesProtocol__:            contains functions that transform requests to correct binary packages that are sent to the hand. Also parces the responses. 
+- __AlpesProtocol__:            contains functions that transform the commands to correct binary packages, before sending them. Also, parces the responses from the hand. 
 - __AlpesHand__:                low-level reading/writing instructions for the hand, initialisation, commands. 
 - __AlpesProsthesis__:          high-level command instructions for the hand. Permits to perform discrete gestures, as well as proportional grasps.
 	
@@ -69,6 +69,25 @@ print(h.memory_dump[VOIES.MAJEUR])
 ```
 This will list all the registers of this channel and their contents.
 
+### Reading motors' angular positions and velocities.
+Each motor of the hand is equipped with a reduction gear (coefficient 1/256) and an encoder. 
+The motors (model DCX10L EB KL 12V) rotate at high speed (hundreds of rad/s), which after reduction becomes what we actually observe.
+Encoders have 32 counts per turn **before** the reduction, so that 32\*256 = 8192 is the number of counts for each turn after reduction.
+In each motor, except for the thumb adduction motor, rotation worth ~43000 counts (or ~5 turns after reduction) completely folds the finger.
+To obtain readings from the motor encoders, use __read\_positions()__ method:
+```python
+pos = h.read_positions() # Returns a six-element list
+```
+The hand's microcontroller constantly estimates the angular velocities of the motors by differentiation of their angles. 
+To access the velocities, use:
+```python
+vel = h.read_velocities() # Returns a six-element list
+```
+__Caveat__: unfortunately, microcontroller always return the absolute angular velocity, not taking into account the direction of the rotation. 
+Logically, register __DIR\_MOTEUR\_CODEUR__, specified in the hand's documentation, should contain the direction of rotation (in it's first or second bit). 
+However, we have read these bits and found out that they do not change in function of rotation of the motors. We have left the corresponding method in AlpesHand commented.
+Thus, it seems like there is no way to query the hand for the directions and therefore it should be derived from circumstances.
+
 
 ### Writing direct commands
 Each motor has three accessible registers that affect its rotation:
@@ -82,7 +101,7 @@ h.write_positions([0, 0, 0, 0, 0, 0]) #Sets target angular position of all motor
 h.write_tensions([0, 0, 5, -5, 0, 0]) #Slowly folds the index and unfolds the middle finger.
 h.set_current_limits([750, 750, 750, 750, 750, 750]) #Sets default value of current limit (see AlpesSpecification.py for more information).
 ```
-The usage of *h.write\_positions()* is harmless. This software checks and forbids erroneous requests.
+The usage of *h.write\_positions()* is harmless. This software checks and forbids erroneous requests. Default limit on of the position that may be requested is 43000.
 The usage of *h.write\_tensions()* or *h.set\_current\_limits()* may be harmful if done without proper attention. This software checks and forbids requests that exceed values specified in the documentation. However, when a finger is blocked by an object and a large torque is applied by the motor, its cable may break. This is not catastrophic, but replacing the cable may be tedious. 
 
 ### Gestures and proportional control
@@ -119,6 +138,16 @@ for t in range(N+1):
 ```
 
 ## Two-hands support
+Working with two hands at once is slightly different from working with one. 
+Here is the code that automatically finds both hands and initialises corresponding objects (hands should be both connected to the computer and powered):
+```python
+from AlpesProsthesis import AlpesProsthesis
+hl, hr = AlpesProsthesis.two_hands()
+```
+This will create two instances of AlpesProsthesis class: __hl__ for the left hand and __hr__ for the right. 
+Further work with is similar to that with one hand.
+
+## Working with MYO armband
 
 ## Relation with official Alpes' documentation
 In the official documentation all the internal constants and register names are in French. Therefore, all variable names in __AlpesSpecification.py__ that were drawn from the documentation are in French, too, for consistence. All other elements or derivatives of the official names are in English. 

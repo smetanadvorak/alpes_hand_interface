@@ -3,9 +3,10 @@ from AlpesSpecification import *
 from AlpesProsthesis import AlpesProsthesis, GESTURES, GRASPS
 import time
 
+# Create an instance of AlpesProsthesis() object. It will try to connect to the hand by itself.
 h = AlpesProsthesis()
+# Start initialisation procedure.
 h.initialise()
-
 
 # Go through all gestures
 # gestures = [g for g in dir(GESTURES()) if not g.startswith('__') and not callable(getattr(GESTURES(), g))]
@@ -125,3 +126,5 @@ h.proportional_control_current(-0.1)
 #('Reading motor modes ...')
 #print(h.read_registers_across(REGISTRES.MODE_CMD_MOTEUR)) 
 
+# Two hands
+# hl, hr = AlpesProsthesis.two_hands()

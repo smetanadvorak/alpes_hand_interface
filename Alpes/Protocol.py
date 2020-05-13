@@ -1,5 +1,5 @@
 import struct
-from AlpesSpecification import *
+from Alpes.Specification import *
 
   
 class AlpesMessage():

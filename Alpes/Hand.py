@@ -1,7 +1,7 @@
 import serial, time
-from AlpesSpecification import *
-from AlpesSerial import AlpesSerial
-from AlpesProtocol import AlpesResponse, AlpesCommand
+from Alpes.Specification import *
+from Alpes.Serial import AlpesSerial
+from Alpes.Protocol import AlpesResponse, AlpesCommand
 
 
 class AlpesHand:
@@ -49,11 +49,11 @@ class AlpesHand:
         if len(ports) != 2:
             raise ConnectionError('Could not find the two hands in the list of serial ports. Check if USB and power cables are inserted properly. Here is the port(s) that I found: %s' % ports)
         else:
-            left  = cls(ports[0])
-            right = cls(ports[1])
-            if left.id == 'right':
-                left, right = right, left 
-        return left, right
+            left_hand  = cls(ports[0])
+            right_hand = cls(ports[1])
+            if left_hand.left_or_right() == 'right':
+                left_hand, right_hand = right_hand, left_hand 
+        return left_hand, right_hand
         
     #################################################################################  
     ############################## COMMAND FUNCTIONS ################################        

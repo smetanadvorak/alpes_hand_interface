@@ -2,8 +2,8 @@
 
 ## Requirements and dependencies
 Python 3 (tested on 3.8) with the following packages installed:
-- pyserial
-- numpy
+- _pyserial_ (tested with version _3.4_)
+- _numpy_	   (tested with version _1.18.4_)
 
 ## Contents
 Classes and constant structures (from low to high level):
@@ -13,7 +13,7 @@ Classes and constant structures (from low to high level):
 - __AlpesHand__:                low-level reading/writing instructions for the hand, initialisation, commands. 
 - __AlpesProsthesis__:          high-level command instructions for the hand. Permits to perform discrete gestures, as well as proportional grasps.
 	
-_Note_: class diagram that illustrates the relationship between these classes is provided in *class\_diagram.xml* and *class\_diagram.png* files.
+__Note__: class diagram that illustrates the relationship between these classes is provided in *class\_diagram.xml* and *class\_diagram.png* files.
 
 ## Usage
 Before using this code, please get familiar with the documentation files provided by hand's developer.

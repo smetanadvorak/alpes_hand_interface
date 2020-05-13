@@ -1,5 +1,5 @@
-from AlpesSpecification import *
-from AlpesHand import AlpesHand
+from Alpes.Specification import *
+from Alpes.Hand import AlpesHand
 import numpy as np
 import numpy.matlib
 

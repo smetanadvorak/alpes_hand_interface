@@ -1,5 +1,7 @@
-__pycache__/*
+Alpes/__pycache__/*
+trashes/*
 .DS_Store
 crazy_tests.py
 test_myo.py
 test.py
+

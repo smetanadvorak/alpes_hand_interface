@@ -21,8 +21,8 @@ Before using this code, please get familiar with the documentation files provide
 ### Bare bones
 Very basic code that initialises the hand and the corresponding __AlpesProsthesis__ object:
 ```python
-from AlpesSpecification import *
-from AlpesProsthesis import AlpesProsthesis
+from Alpes.Specification import *
+from Alpes.Prosthesis import AlpesProsthesis
 h = AlpesProsthesis()
 h.initialise()
 ```
@@ -67,8 +67,8 @@ Where the last argument __data__ is the integer or a list of integers that you w
 
 Finally, if you want to see the contents of all registers of a specific channel (middlefinger, in this example), you can use:
 ```python
-h.get_memory_dump()
-print(h.memory_dump[VOIES.MAJEUR])
+h.read_memory()
+print(h.memory[VOIES.MAJEUR])
 ```
 This will list all the registers of this channel and their contents.
 
@@ -86,6 +86,8 @@ To access the velocities, use:
 ```python
 vel = h.read_velocities() # Returns a six-element list
 ```
+Returned values are the angular velocities of the motor shafts measured in rpm (rotations per minute).
+
 __Caveat__: unfortunately, microcontroller always return the absolute angular velocity, not taking into account the direction of the rotation. 
 Logically, register __DIR\_MOTEUR\_CODEUR__, specified in the hand's documentation, should contain the direction of rotation (in it's first or second bit). 
 However, we have read these bits and found out that they do not change in function of rotation of the motors. We have left the corresponding method in AlpesHand (see __AlpesHand.read\_velocities\_and\_directions()__).
@@ -104,14 +106,18 @@ h.write_positions([0, 0, 0, 0, 0, 0]) #Sets target angular position of all motor
 h.write_tensions([0, 0, 5, -5, 0, 0]) #Slowly folds the index and unfolds the middle finger.
 h.set_current_limits([750, 750, 750, 750, 750, 750]) #Sets default value of current limit (see AlpesSpecification.py for more information).
 ```
-The usage of *h.write\_positions()* is harmless. This software checks and forbids erroneous requests. Default limit on of the position that may be requested is 43000.
-The usage of *h.write\_tensions()* or *h.set\_current\_limits()* may be harmful if done without proper attention. This software checks and forbids requests that exceed values specified in the documentation. However, when a finger is blocked by an object and a large torque is applied by the motor, its cable may break. This is not catastrophic, but replacing the cable may be tedious. 
+The usage of __h.write\_positions()__ is harmless. This software checks and forbids erroneous requests. Default limit on of the position that may be requested is 43000.
+The usage of __h.write\_tensions()__ may be harmful if done without proper attention. 
+This software checks and forbids requests that exceed values specified in the documentation. 
+However, when a finger is blocked by an object and a large torque is applied by the motor, its cable may break. 
+This is not catastrophic, but replacing the cable may be tedious. 
+Attempting to write values larger than 750 to the __REGISTRE.LIMITE\_COURANT__ will result in writing its maximum possible value, 750. 
 
 ### Gestures and proportional control
 List of pre-programmed gestures can be found in __AlpesProsthesis.py__, class __GESTURES__. Each gesture is simply a list of final positions to be reached by the motors. Use the following method to perform gestures:
 ```python
 import time
-from AlpesProsthesis import AlpesProsthesis, GESTURES
+from Alpes.Prosthesis import AlpesProsthesis, GESTURES
 h.set_gesture(GESTURES.VICTORY)
 time.sleep(2) #Give the hand time to reach the final position before proceeding.
 ```
@@ -129,7 +135,7 @@ Proportional control is a continuous version of setting a gesture. It makes the 
 Available grasps are listed in __AlpesProsthesis.py__, class __GRASPS__ (see its comments for details). List can be extened.
 To set up proportional control, run:
 ```python
-from AlpesProsthesis import AlpesProsthesis, GRASPS
+from Alpes.Prosthesis import AlpesProsthesis, GRASPS
 h.set_grasp(GRASPS.CYLINDRICAL)
 ```
 and then, to perform the proportional control:
@@ -143,7 +149,7 @@ for t in range(N+1):
 ## Two-hands support
 Here is the code that automatically finds both hands and initialises corresponding objects (hands should be both connected to the computer and powered):
 ```python
-from AlpesProsthesis import AlpesProsthesis
+from Alpes.Prosthesis import AlpesProsthesis
 hl, hr = AlpesProsthesis.two_hands()
 ```
 This will create two instances of AlpesProsthesis class: __hl__ for the left hand and __hr__ for the right. 

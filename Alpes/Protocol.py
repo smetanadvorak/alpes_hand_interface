@@ -8,7 +8,7 @@ class AlpesMessage():
         s += 'Type: %s\n' % str(self.prefix, 'utf-8')
         s += 'Start register: %d\n' % self.start_register
         s += 'Number of registers: %d\n' % self.number_registers
-        s += 'Data (payload): ' + ' '.join('%d'* len(self.data)) % tuple(self.data) + '\n'
+        s += 'Data (payload): ' + ' '.join('%s'* len(self.data)) % tuple(self.data)
         return s
         
         
@@ -106,7 +106,7 @@ class AlpesResponse(AlpesMessage):
         else:
             self.start_register   = struct.unpack('<B', response[2:3])
             self.number_registers = struct.unpack('<B', response[3:4])
-            self.data             = list(struct.unpack('<%sh' % self.number_registers, response[4:]))
+            self.data             = list(struct.unpack('<%sH' % self.number_registers, response[4:]))
                         
     
                

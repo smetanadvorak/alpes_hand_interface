@@ -11,6 +11,12 @@ class AlpesHand:
         self.set_current_limits()
         self.current_limit = self.read_registers_across(REGISTRES.LIMITE_COURANT)
        
+    def __del__(self):
+        self.set_current_limits([0]*6) # If this object gets destroyed in case of an error or an interrupt, 
+                                       # secure the hand first by setting all current limits to zero.
+                                       # This way, motors won't be able to proceed with a possibly erroneous command. 
+                                       # If the hand is stuck in some bad position and you stopped the execution by ctrl-c, 
+                                       # switch off and on the hand, then start over. 
         
     def initialise(self):
         if self.check_initialised():
@@ -28,6 +34,8 @@ class AlpesHand:
                     time.sleep(1)                
             raise 'Hand initialisation timeout (60 seconds) exceeded without the hand confirming the end of initialisation.'
     
+    
+    
     def check_initialised(self):
         command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, REGISTRE_INITIALISATION, 1)
         self.serial.write(command.pack())
@@ -35,12 +43,14 @@ class AlpesHand:
         return response.data[0] == 1
         
 
+
     def left_or_right(self):
         command = AlpesCommand(PREFIXES.LECTURE_REGISTRE, 1000 + REGISTRES.ID_DROITE_GAUCHE, 1)
         self.serial.write(command.pack())
         response = AlpesResponse(self.serial.read(command.expected_response_size))
-        self.id = 'left' if response.data[0] else 'right'
+        self.id = 'left' if response.data[0]==2 else 'right'
         return self.id   
+         
          
     @classmethod
     def two_hands(cls):
@@ -110,7 +120,7 @@ class AlpesHand:
         # Check the passed values for correctness
         correct, message = self.check_command(vals, motors, [CONTROLE_COURANT.LIMITE_COURANT_MAX] * 6)
         if not correct:
-            details = "Note: Maximal current limit, according to the motor specification, is CONTROLE_COURANT.LIMITE_COURANT_MAX = 4000 (corresponds to 0.211 A of MAX_CONTINUOUS_CURRENT)."
+            details = "Note: Maximal current limit, according to the motor specification, is CONTROLE_COURANT.LIMITE_COURANT_MAX = 750."
             raise ValueError(message + details)
         if motors is None:
             motors = VOIES.ALL           
@@ -129,7 +139,11 @@ class AlpesHand:
         command = AlpesCommand(PREFIXES.LECTURE_POSITION_CODEUR, 0, 6, self.current_limit)
         self.serial.write(command.pack())
         response = AlpesResponse(self.serial.read(command.expected_response_size))
-        return response.data
+        # Sometimes when rotating backwards, motors go slightly beyond the origin point of rotation, 
+        # which results in values like 65535 that are, in fact, impossible.
+        # In my opinion, it only clutters the user's data and therefore I filter it out.
+        result = list(map(lambda x: x if x < 65500 else 0, response.data))
+        return result
         
         
     def read_velocities(self): #, get_directions = 'False'):
@@ -174,18 +188,18 @@ class AlpesHand:
         return [self.__read_registers_consecutively(VOIE2MEMOIRE(v) + register_id, 1)[0] for v in VOIES.ALL]
           
                 
-    def get_memory_dump(self):
+    def read_memory(self):
         # Full memory dump is a list of six objects of type REGISTRES with fields filled by the hand's memory
-        self.memory_dump = [REGISTRES() for i in VOIES.ALL]
+        self.memory = [REGISTRES() for i in VOIES.ALL]
         # Get list of the attributes of type REGISTRES to project memory onto the REGISTRES objects.
         attributes  = [s for s in dir(REGISTRES()) if not s.startswith('__') and not callable(getattr(REGISTRES(), s))]
         # For each 'voie' (motor channel)
-        for (i,voie) in enumerate(self.memory_dump):
+        for (i,voie) in enumerate(self.memory):
             voie_dump = self.__read_registers_consecutively(VOIE2MEMOIRE(i), 42) #Total of 42 registers per motor channel (See 'Registres Main Robotisee.pdf')
             for attr in attributes:
                 memory_position = getattr(REGISTRES(), attr)
                 setattr(voie, attr, voie_dump[memory_position])
-        return self.memory_dump
+        return self.memory
             
            
     def read_velocities_and_directions(self):

@@ -51,7 +51,6 @@ class AlpesSerial:
     @staticmethod   
     def find_ports():
         ports = [port[0] for port in comports() if port[1] == 'FT232R USB UART']
-
         if len(ports) == 0:
             raise ConnectionError('Could not find a serial port connection associated to the hand. Try specifying it by passing its name when initialising an AlpesHand object!')
         elif len(ports) == 1:

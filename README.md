@@ -16,8 +16,9 @@ Classes and constant structures (from low to high level):
 __Note__: class diagram that illustrates the relationship between these classes is provided in *class\_diagram.xml* and *class\_diagram.png* files.
 
 ## Usage
-Before using this code, please get familiar with the documentation files provided by hand's developer.
+Before using this code, please get familiar with the documentation files provided by the hand's developer.
 
+Connect the hand to your PC using mini-usb cable, plug-in the hand's AC adapter. Ready to go.
 ### Bare bones
 Very basic code that initialises the hand and the corresponding __AlpesProsthesis__ object:
 ```python
@@ -71,6 +72,7 @@ h.read_memory()
 print(h.memory[VOIES.MAJEUR])
 ```
 This will list all the registers of this channel and their contents.
+__Note:__ Backup images of the default memory are stored in /misc/backup\_memory\_image in form of text files: one per motor channel.
 
 ### Reading motors' angular positions and velocities.
 Each motor of the hand is equipped with a reduction gear (coefficient 1/256) and an encoder. 

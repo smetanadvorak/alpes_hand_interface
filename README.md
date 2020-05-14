@@ -9,11 +9,15 @@ Python 3 (tested on 3.8) with the following packages installed:
 Classes and constant structures (from low to high level):
 - __AlpesSpecification.py__:    provides a bunch of constant structures that define alias for the hand registers, communication codes, etc.
 - __AlpesSerial__:              a mere supplement for original pyserial module; can automatically detect serial ports that hands are connected to. 
-- __AlpesProtocol__:            contains functions that transform the commands to correct binary packages, before sending them. Also, parces the responses from the hand. 
+- __AlpesProtocol__:            contains functions that transform the commands to correct binary packages, before sending them (class __AlpesMessage__). Also, parces the responses from the hand (class __AlpesResponse__). 
 - __AlpesHand__:                low-level reading/writing instructions for the hand, initialisation, commands. 
 - __AlpesProsthesis__:          high-level command instructions for the hand. Permits to perform discrete gestures, as well as proportional grasps.
 	
-__Note__: class diagram that illustrates the relationship between these classes is provided in *class\_diagram.xml* and *class\_diagram.png* files.
+__Note__: class diagram that illustrates the relationship between these classes is provided in *class\_diagram.xml* and *class\_diagram.png* files. Here is its shortened version:
+
+<p align="center">
+  <img width="500" src="docs/Alpes_ClassDiagramSmall.png">
+</p>
 
 ## Usage
 Before using this code, please get familiar with the documentation files provided by hand's developer.

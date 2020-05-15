@@ -132,6 +132,8 @@ List of pre-programmed gestures can be found in __AlpesProsthesis.py__, class __
 ```python
 import time
 from Alpes.Prosthesis import AlpesProsthesis, GESTURES
+h = AlpesProsthesis()
+h.initialise()
 h.set_gesture(GESTURES.VICTORY)
 time.sleep(2) #Give the hand time to reach the final position before proceeding.
 ```
@@ -150,6 +152,8 @@ Available grasps are listed in __AlpesProsthesis.py__, class __GRASPS__ (see its
 To set up proportional control, run:
 ```python
 from Alpes.Prosthesis import AlpesProsthesis, GRASPS
+h = AlpesProsthesis()
+h.initialise()
 h.set_grasp(GRASPS.CYLINDRICAL)
 ```
 and then, to perform the proportional control:

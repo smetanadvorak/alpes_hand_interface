@@ -1,7 +1,4 @@
 Alpes/__pycache__/*
-trashes/*
+tests/*
 .DS_Store
-crazy_tests.py
-test_myo.py
-test.py
 

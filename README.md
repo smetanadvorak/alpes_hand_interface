@@ -76,19 +76,20 @@ h.read_memory()
 print(h.memory[VOIES.MAJEUR])
 ```
 This will list all the registers of this channel and their contents.
-__Note:__ Backup images of the default memory are stored in /misc/backup\_memory\_image in form of text files: one per motor channel.
+
+__Note:__ Backup images of the default memory are stored in __/misc/backup\_memory\_image__ in form of text files: one per motor channel.
 
 ### Reading motors' angular positions and velocities.
 Each motor of the hand is equipped with a reduction gear (coefficient 1/256) and an encoder. 
 The motors (model DCX10L EB KL 12V) rotate at high speed (hundreds of rad/s), which after reduction becomes what we actually observe.
 Encoders have 32 counts per turn **before** the reduction, so that 32\*256 = 8192 is the number of counts for each turn after reduction.
-In each motor, except for the thumb adduction motor, rotation worth ~43000 counts (or ~5 turns after reduction) completely folds the finger.
+In each motor, except for the thumb motors, rotation worth 43000 counts (or ~5 turns after reduction) completely folds the finger.
 To obtain readings from the motor encoders, use __read\_positions()__ method:
 ```python
 pos = h.read_positions() # Returns a six-element list
 ```
 The hand's microcontroller constantly estimates the angular velocities of the motors by differentiation of their angles. 
-To access the velocities, use:
+To access these estimates, use:
 ```python
 vel = h.read_velocities() # Returns a six-element list
 ```
@@ -96,8 +97,9 @@ Returned values are the angular velocities of the motor shafts measured in rpm (
 
 __Caveat__: unfortunately, microcontroller always return the absolute angular velocity, not taking into account the direction of the rotation. 
 Logically, register __DIR\_MOTEUR\_CODEUR__, specified in the hand's documentation, should contain the direction of rotation (in it's first or second bit). 
-However, we have read these bits and found out that they do not change in function of rotation of the motors. We have left the corresponding method in AlpesHand (see __AlpesHand.read\_velocities\_and\_directions()__).
-Thus, it seems like there is no way to query the hand for the directions and therefore it should be derived from circumstances.
+However, we have read these bits and found out that they do not change in function of rotation of the motors. 
+For those interested, we have left the corresponding method in AlpesHand (see __AlpesHand.read\_velocities\_and\_directions()__).
+Thus, it seems like there is no way to query the hand for the directions and they should be derived from circumstances.
 
 
 ### Writing direct commands
@@ -106,14 +108,14 @@ Each motor has three accessible registers that affect its rotation:
 - __REGISTRE.CONSIGNE\_TENSION\_POSITION__ when __REGISTRE.MODE\_CMD\_MOTEUR = 2__ allows to apply a specific voltage to each of the motors (between -11.5V and 11.5V).
 - __REGISTRE.LIMITE\_COURANT__ allows to change the internal limit set on the motor current.
 
-Access these variables is wrapped in the methods:
+Access to these variables is wrapped in the following methods:
 ```python
 h.write_positions([0, 0, 0, 0, 0, 0]) #Sets target angular position of all motors to 0 (unfold all fingers).
 h.write_tensions([0, 0, 5, -5, 0, 0]) #Slowly folds the index and unfolds the middle finger.
-h.set_current_limits([750, 750, 750, 750, 750, 750]) #Sets default value of current limit (see AlpesSpecification.py for more information).
+h.set_current_limits([750, 750, 750, 750, 750, 750]) #Sets value of current limit (see the documentation and AlpesSpecification.py for more information).
 ```
-The usage of __h.write\_positions()__ is harmless. This software checks and forbids erroneous requests. Default limit on of the position that may be requested is 43000.
-The usage of __h.write\_tensions()__ may be harmful if done without proper attention. 
+Usage of __h.write\_positions()__ is harmless. This software checks and forbids erroneous requests. Default limit on of the position that may be requested is specified in __Alpes.Specification.MAXIMAL\_MOTOR\_POSITIONS__
+Usage of __h.write\_tensions()__ may be harmful if done without proper attention. 
 This software checks and forbids requests that exceed values specified in the documentation. 
 However, when a finger is blocked by an object and a large torque is applied by the motor, its cable may break. 
 This is not catastrophic, but replacing the cable may be tedious. 
@@ -164,7 +166,9 @@ Further work with each is similar to that with one hand.
 ## Working with MYO armband
 
 ## Relation with official Alpes' documentation
-In the official documentation all the internal constants and register names are in French. Therefore, all variable names in __AlpesSpecification.py__ that were drawn from the documentation are in French, too, for consistence. All other elements or derivatives of the official names are in English. 
+In the official documentation all the internal constants and register names are in French. 
+Therefore, all variable names in __AlpesSpecification.py__ that were drawn from the documentation are in French, too, for consistence. 
+All other elements or derivatives of the official names are in English. 
 
 ## What's next?
 One can extend the provided classes the way he or she needs. 
@@ -176,5 +180,5 @@ To implement new control approaches, inherit from __AlpesHand__ or __AlpesProsth
 ## Acknowledgments
 We would like to thank Alpes Industries for providing us with a detailed documentation on their product and for some after-purchase support.
 Also, kind regards to Benjamin Gautier who was the first to write Matlab utilities for working with the hands.
-Finally, we thank Guillaume Perrault for pythonification of the Benjamin's code, which became a basis for this repositorium.
+Finally, we thank Guillaume Perrault for pythonification of the Benjamin's code, which helped a lot to write this code.
 

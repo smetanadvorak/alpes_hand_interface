@@ -19,6 +19,12 @@ __Note__: class diagram that illustrates the relationship between these classes 
   <img width="500" src="docs/Alpes_ClassDiagramSmall.png">
 </p>
 
+## Installation
+Open command line, navigate to the folder with this project and run the following command:
+```
+pip3 install -e .
+```
+
 ## Usage
 Before using this code, please get familiar with the documentation files provided by the hand's developer.
 

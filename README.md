@@ -201,6 +201,6 @@ To implement new control approaches, inherit from __AlpesHand__ or __AlpesProsth
 
 ## Acknowledgments
 We would like to thank Alpes Industries for providing us with a detailed documentation on their product and for some after-purchase support.
-Also, kind regards to Benjamin Gautier who was the first to write Matlab utilities for working with the hands.
+Kind regards to Benjamin Gautier who was the first to write Matlab utilities for working with the hands. We thank Elena Rampone and Victoria Elena for refining Benjamin's code.
 Finally, we thank Guillaume Perrault for pythonification of the Benjamin's code, which helped a lot to write this code.
 

@@ -185,6 +185,7 @@ This will create two instances of AlpesProsthesis class: __hl__ for the left han
 Further work with each is similar to that with one hand.
 
 ## Working with MYO armband
+First, install [this package](https://github.com/smetanadvorak/myo_ecn), then follow it's README and use [this script](https://github.com/smetanadvorak/myo_ecn/tree/master/examples/prosthetic_control).
 
 ## Relation with official Alpes' documentation
 In the official documentation all the internal constants and register names are in French. 

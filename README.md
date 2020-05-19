@@ -71,7 +71,7 @@ This will return a six-elements list of values contained in register __MODE\_CMD
 
 Writing to the registers is very similar to reading, except that you need to add data to the function call:
 ```python
-h.write_register(VOIES.INDEX, REGISTRES.MODE_CMD_MOTEUR, 1)
+h.write_register(VOIES.INDEX, REGISTRES.MODE_CMD_MOTEUR, [1])
 h.write_registers_across(REGISTRES.MODE_CMD_MOTEUR, [0,0,0,1,1,1])
 ```
 Where the last argument __data__ is the integer or a list of integers that you want to write into the register(s).

@@ -1,4 +1,5 @@
-Alpes/__pycache__/*
+*.pyc
+*.pyo
 tests/*
-.DS_Store
-
+*.DS_Store
+*.egg-info

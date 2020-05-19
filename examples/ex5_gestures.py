@@ -12,6 +12,6 @@ for g in gestures:
      h.set_gesture(getattr(GESTURES(), g))
      time.sleep(2.5)
 
-print('Back to initial position') 
+print('Back to initial position')
 h.set_gesture(GESTURES.OPEN)
-
+time.sleep(5)

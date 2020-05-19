@@ -127,7 +127,7 @@ However, when a finger is blocked by an object and a large torque is applied by 
 This is not catastrophic, but replacing the cable may be tedious. 
 Attempting to write values larger than 750 to the __REGISTRE.LIMITE\_COURANT__ will result in writing its maximum possible value, 750. 
 
-### Gestures and proportional control
+### Gestures
 List of pre-programmed gestures can be found in __AlpesProsthesis.py__, class __GESTURES__. Each gesture is simply a list of final positions to be reached by the motors. Use the following method to perform gestures:
 ```python
 import time
@@ -145,10 +145,10 @@ for g in ["ONE", "TWO", "THREE", "FOUR", "FIVE"]:
     time.sleep(2)
 ```
 
-(UNDER REVISION)
+### Proportional control
 
-Proportional control is a continuous version of setting a gesture. It makes the hand to perform a grasp up to a specific degree between 0 (no grasp) and 1 (maximal grasping force).
-Available grasps are listed in __AlpesProsthesis.py__, class __GRASPS__ (see its comments for details). List can be extened.
+Proportional control permits to reach a continuous variety of the hand's positions. More specifically, it makes the hand to perform a grasp up to a specific degree between 0 (maximal opening, no grasping) and 1 (maximal closing, maximal grasping).
+Available grasps are listed in __AlpesProsthesis.py__, class __GRASPS__ (see its comments for details). This list can be extened.
 To set up proportional control, run:
 ```python
 from Alpes.Prosthesis import AlpesProsthesis, GRASPS
@@ -156,13 +156,24 @@ h = AlpesProsthesis()
 h.initialise()
 h.set_grasp(GRASPS.CYLINDRICAL)
 ```
-and then, to perform the proportional control:
+and then, to perform the proportional control, pass values between __0__ and __1__ to __Prosthesis.proportional_control_position()__:
 ```python
 N = 10
 for t in range(N+1):
-     h.proportional_control_current(t/N)
+     h.proportional_control_position(t/N)
      time.sleep(0.2)
 ```
+or values __-1__ and __1__ to function __Prosthesis.proportional_control_current()__:
+```python
+N = 20
+for t in range(N+1):
+     h.proportional_control_current(t/N)
+     time.sleep(0.2)
+for t in range(N+1):
+     h.proportional_control_current(1-2*t/N)
+     time.sleep(0.2)
+```
+__Prosthesis.proportional_control_position()__ simply maps the input parameter onto the finger trajectories specified in __Prosthesis.GRASPS__. __Prosthesis.proportional_control_current()__, instead, maps the input parameter onto the motor current limits, thus modulating their speeds and torques.
 
 ## Two-hands support
 Here is the code that automatically finds both hands and initialises corresponding objects (hands should be both connected to the computer and powered):

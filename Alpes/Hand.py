@@ -6,17 +6,22 @@ from Alpes.Protocol import AlpesResponse, AlpesCommand
 
 class AlpesHand:
     def __init__(self, port = None):
-        self.serial = AlpesSerial(port) # Instantiate the serial connection
+        try:
+            self.serial = AlpesSerial(port) # Instantiate the serial connection
+        except ConnectionError:
+            self.serial = None
+            raise
         self.left_or_right()       # Figure out if this is the right or the left hand
         self.set_current_limits()  # Set default current limit
 
     def __del__(self):
-        self.set_mode(MODE_CMD_MOTEUR.STOP)
-        self.set_current_limits([0]*6) # If this software object gets destroyed in case of an error or an interrupt,
-                                       # secure the hand first by setting all current limits to zero.
-                                       # This way, motors won't be able to proceed with a possibly erroneous command.
-                                       # If the hand is stuck in some bad position and you stopped the execution by ctrl-c,
-                                       # switch off and on the hand, then start over.
+        if not isnone(self.serial):
+            self.set_mode(MODE_CMD_MOTEUR.STOP)
+            self.set_current_limits([0]*6) # If this software object gets destroyed in case of an error or an interrupt,
+                                           # secure the hand first by setting all current limits to zero.
+                                           # This way, motors won't be able to proceed with a possibly erroneous command.
+                                           # If the hand is stuck in some bad position and you stopped the execution by ctrl-c,
+                                           # switch off and on the hand, then start over.
 
     def initialise(self):
         if self.check_initialised():
